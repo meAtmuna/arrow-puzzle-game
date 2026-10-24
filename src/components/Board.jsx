@@ -8,13 +8,13 @@ function pos(index) {
 }
 
 function headPoints(x, y, dir) {
-    if (dir ===  'up') return `${x}, ${y -14} ${x - 9},${y} ${x + 9},${y}`
+    if (dir ===  'up') return `${x},${y - 14} ${x - 9},${y} ${x + 9},${y}`
     if (dir === 'down') return `${x},${y + 14} ${x - 9},${y} ${x + 9},${y}`
     if (dir === 'left') return `${x - 14},${y} ${x},${y - 9} ${x},${y + 9}`
     return `${x + 14},${y} ${x},${y - 9} ${x},${y + 9}`
 }
 
-export default function Board({ size, arrows }) {
+export default function Board({ size, arrows, onArrowClick, blockedId }) {
     const total = pad * 2 + (size - 1) * gap
 
     const dots =[]
@@ -39,18 +39,34 @@ export default function Board({ size, arrows }) {
                 const line = arrow.cells.map((c) => pos(c[1]) + ',' + pos(c[0])).join(' ')
                 const head = getHead(arrow)
 
+                const isBlocked = blockedId === arrow.id
+                const lineColor = isBlocked ? 'stroke-red-500' : 'stroke-slate-800'
+                const headColor =isBlocked ? 'fill-red-500' : 'fill-slate-800'
+
                 return(
-                    <g key={arrow.id}>
+                    <g 
+                        key={arrow.id}
+                        onClick={() => onArrowClick(arrow)}
+                        className="cursor-pointer"
+                    >
                         <polyline
                             points={line}
-                            className="fill-none stroke-slate-800"
+                            fill="none"
+                            stroke="transparent"
+                            strokeWidth="24"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                        <polyline
+                            points={line}
+                            className={'fill-none ' + lineColor}
                             strokeWidth="6"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                         />
                         <polygon
                             points={headPoints(pos(head[1]), pos(head[0]), getDirection(arrow))}
-                            className="fill-slate-800"
+                            className={headColor}
                         />
                     </g>
                 )
