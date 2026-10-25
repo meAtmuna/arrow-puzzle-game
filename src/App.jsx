@@ -7,13 +7,18 @@ export default function App() {
   const [arrows, setArrows] = useState(level1.arrows)
   const [moves, setMoves] = useState(0)
   const [blockedId, setBlockedId] = useState(null)
+  const [leavingId, setLeavingId] = useState(null)
 
   function handleArrowClick(arrow) {
-    if (isWin(arrows)) return
+    if (isWin(arrows) || leavingId !== null) return
       setMoves(moves + 1)
 
       if (canEscape(arrow, arrows, level1.size)) {
-        setArrows(removeArrow(arrows, arrow.id))
+        setLeavingId(arrow.id)
+        setTimeout(()=> {
+          setArrows((old) => removeArrow(old, arrow.id))
+          setLeavingId(null)
+        }, 500)
       } 
       else {
         setBlockedId(arrow.id)
@@ -22,6 +27,7 @@ export default function App() {
   }
 
   function restart() {
+    if (leavingId !== null) return
     setArrows(level1.arrows)
     setMoves(0)
   }
@@ -34,7 +40,8 @@ export default function App() {
         size={level1.size}
         arrows={arrows}
         onArrowClick={handleArrowClick}
-        blockedId={blockedId} 
+        blockedId={blockedId}
+        leavingId={leavingId} 
       />
 
       {isWin(arrows) && (
