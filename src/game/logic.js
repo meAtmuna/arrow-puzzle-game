@@ -82,3 +82,21 @@ export function getSlidePoints(arrow, size, offset) {
     points.push(between(path[first + length], path[first + length + 1]))
     return points
 }
+
+export function getFreeSteps(arrow, arrows, size) {
+    const step = steps[getDirection(arrow)]
+    const head = getHead(arrow)
+
+    let row = head[0] + step.row
+    let col = head[1] + step.col
+    let count = 0 
+
+    while (row >= 0 && row < size && col >= 0 && col < size) {
+        if (isOccupied(arrows, row, col)) return count
+        count++
+        row += step.row
+        col += step.col
+    }
+
+    return count
+}

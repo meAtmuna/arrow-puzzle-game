@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { level1 } from "./game/levels"
 import Board from "./components/Board"
-import { canEscape, isWin, removeArrow, getSlideDistance } from "./game/logic"
+import { canEscape, isWin, removeArrow, getSlideDistance, getFreeSteps } from "./game/logic"
 
 export default function App() {
   const [arrows, setArrows] = useState(level1.arrows)
@@ -30,6 +30,38 @@ export default function App() {
     setLeaving({ id: arrow.id, offset: 0 })
     requestAnimationFrame(frame)
   }
+
+  function bumpBack(arrow) {
+    const maxOffset = getFreeSteps(arrow, arrows, level1.size) + 0.7
+    const speed = 10
+    const goTime = maxOffset / speed
+    const start  = performance.now()
+
+    function frame(now) {
+      const time = Math.max(0, now - start) / 1000
+      let offset
+
+      if (time < goTime) {
+        offset = time * speed
+      } else {
+        setBlockedId(arrow.id)
+        offset = maxOffset - (time - goTime) * speed
+
+        if (offset <= 0) {
+          setLeaving(null)
+          setBlockedId(null)
+          return
+        }
+      }
+
+      setLeaving({ id: arrow.id, offset: offset })
+      requestAnimationFrame(frame)
+    }
+
+    setLeaving({ id: arrow.id, offset: 0 })
+    requestAnimationFrame(frame)
+  }
+
   function handleArrowClick(arrow) {
     if (isWin(arrows) || leaving !== null) return
       setMoves(moves + 1)
@@ -38,8 +70,7 @@ export default function App() {
         slideOut(arrow)
       } 
       else {
-        setBlockedId(arrow.id)
-        setTimeout(() => setBlockedId(null), 400)
+        bumpBack(arrow)
       }
   }
 
