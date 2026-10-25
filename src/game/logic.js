@@ -50,3 +50,35 @@ export function removeArrow(arrows, id) {
 export function isWin(arrows) {
     return arrows.length === 0
 }
+
+export function getSlideDistance(arrow, size) {
+    return arrow.cells.length + size
+}
+
+export function getSlidePoints(arrow, size, offset) {
+    const step = steps[getDirection(arrow)]
+    const head =getHead(arrow)
+    const length= arrow.cells.length - 1
+
+    const path = [...arrow.cells]
+    for (let i = 1; i <= size + arrow.cells.length + 2; i++) {
+        path.push([head[0] + step.row * i, head[1] + step.col * i])
+    }
+
+    const first =Math.floor(offset)
+    const frac = offset - first
+
+    function between(a, b) {
+        return [a[0] + (b[0] - a[0]) * frac, a[1] + (b[1] - a[1]) * frac]
+    }
+
+    const points = []
+    points.push(between(path[first], path[first + 1]))
+
+    for (let i = first + 1; i <= first +  length; i++) {
+        points.push(path[i])
+    }
+
+    points.push(between(path[first + length], path[first + length + 1]))
+    return points
+}

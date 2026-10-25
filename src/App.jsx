@@ -1,24 +1,41 @@
 import { useState } from "react"
 import { level1 } from "./game/levels"
 import Board from "./components/Board"
-import { canEscape, isWin, removeArrow } from "./game/logic"
+import { canEscape, isWin, removeArrow, getSlideDistance } from "./game/logic"
 
 export default function App() {
   const [arrows, setArrows] = useState(level1.arrows)
   const [moves, setMoves] = useState(0)
   const [blockedId, setBlockedId] = useState(null)
-  const [leavingId, setLeavingId] = useState(null)
+  const [leaving, setLeaving] = useState(null)
 
+  function slideOut(arrow) {
+    const distance =  getSlideDistance(arrow, level1.size)
+    const speed = 8 
+    const start = performance.now()
+
+    function frame(now) {
+      const offset = Math.max(0, ((now - start) / 1000) * speed)
+
+      if (offset >= distance) {
+        setArrows((old) => removeArrow(old, arrow.id))
+        setLeaving(null)
+        return
+      }
+
+      setLeaving({ id: arrow.id, offset: offset })
+      requestAnimationFrame(frame)
+    }
+
+    setLeaving({ id: arrow.id, offset: 0 })
+    requestAnimationFrame(frame)
+  }
   function handleArrowClick(arrow) {
-    if (isWin(arrows) || leavingId !== null) return
+    if (isWin(arrows) || leaving !== null) return
       setMoves(moves + 1)
 
       if (canEscape(arrow, arrows, level1.size)) {
-        setLeavingId(arrow.id)
-        setTimeout(()=> {
-          setArrows((old) => removeArrow(old, arrow.id))
-          setLeavingId(null)
-        }, 500)
+        slideOut(arrow)
       } 
       else {
         setBlockedId(arrow.id)
@@ -27,7 +44,7 @@ export default function App() {
   }
 
   function restart() {
-    if (leavingId !== null) return
+    if (leaving !== null) return
     setArrows(level1.arrows)
     setMoves(0)
   }
@@ -41,7 +58,7 @@ export default function App() {
         arrows={arrows}
         onArrowClick={handleArrowClick}
         blockedId={blockedId}
-        leavingId={leavingId} 
+        leaving={leaving}
       />
 
       {isWin(arrows) && (
